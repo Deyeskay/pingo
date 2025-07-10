@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>P2P Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #aaa;
+      margin: 0;
+      padding: 1em;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .screen {
+      display: none;
+      background: #f4f4f4;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .active {
+      display: block !important;
+    }
+
+    h2 {
+      margin-top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+
+    input {
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #6200ee;
+      color: white;
+      cursor: pointer;
+    }
+
+    .small-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    #chat-box {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      height: 300px;
+      overflow-y: auto;
+      font-size: 0.95em;
+      white-space: pre-wrap;
+      border: 1px solid #ddd;
+    }
+
+    #top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .copy-icons {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .toolbar-icons {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: red;
+      color: white;
+      font-size: 0.7em;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    #exit-room {
+      background: #9400d3;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .modal-bg, #people-modal {
+      display: none;
+      position: fixed;
+      z-index: 5;
+    }
+
+    .modal-bg {
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    #people-modal {
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #people-list {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    @media (max-width: 500px) {
+      h2 { font-size: 1.2em; }
+      input, button { font-size: 0.95em; padding: 10px; }
+      #chat-box { height: 250px; font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Home Screen -->
+  <div id="home-screen" class="screen active">
+    <h2>🧩 P2P Chat 
+      <button class="small-btn" onclick="switchMode()" title="Switch mode">🔁</button>
+    </h2>
+
+    <p id="mode-msg"><strong>Loading...</strong></p>
+
+    <div id="host-id-section" style="display: none;">
+      <p><strong>Your ID:</strong> 
+        <span id="my-id">Loading...</span> 
+        <span class="copy-icons" onclick="copyID()">📋</span> 
+        <span class="copy-icons" onclick="shareID()">🔗</span>
+      </p>
+    </div>
+
+    <div id="joiner-id-section" style="display: none;">
+      <input id="peer-id-input" placeholder="Enter host ID to join">
+    </div>
+
+    <input id="nickname" placeholder="Enter your name/nickname">
+
+    <button id="join-btn" onclick="connectToHost()">Join Room</button>
+    <button id="go-to-chat" onclick="validateAndGoToChat()" style="display: none;">Go to Chat Room</button>
+  </div>
+
+
+  <!-- Chat Screen -->
+	<div id="chat-screen" class="screen">
+	  <div id="top-bar">
+		<h2>🧩 P2P Chat</h2>
+		<div class="toolbar-icons">
+		  <div id="people-icon-container" style="position: relative; cursor: pointer;" onclick="showPeopleModal()">
+			<span style="font-size: 1.3em;">👥</span>
+			<span id="participant-badge" class="badge" style="display:none;">1</span>
+		  </div>
+		  <button id="exit-room" onclick="exitRoom()">Exit Room</button>
+		</div>
+	  </div>
+
+	  <!-- ID Row: Shown only for host -->
+	  <div id="host-id-bar" style="margin-bottom: 10px; display: none;">
+		<strong>ID:</strong>
+		<span class="copy-icons" onclick="copyID()">📋</span>
+		<span class="copy-icons" onclick="shareID()">🔗</span>
+	  </div>
+
+	  <div id="chat-box"></div>
+	  <input id="message" placeholder="Enter message">
+	  <button onclick="sendMessage()">Send</button>
+	</div>
+
+  <!-- Participants Modal -->
+  <div class="modal-bg" id="modal-bg"></div>
+  <div id="people-modal">
+    <h3>👥 Participants</h3>
+    <p id="participant-count">Total: 0</p>
+    <ul id="people-list"></ul>
+    <button onclick="hidePeopleModal()">Close</button>
+  </div>
+
+  <!-- PeerJS -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+	<script>
+	  // Updated P2P Chat App JavaScript
+let isHost = location.hash === "#host";
+const peer = new Peer({ host: '0.peerjs.com', port: 443, path: '/' });
+let conn;
+let connections = [];
+let nicknames = {};
+let nickname = "";
+
+peer.on('open', id => {
+  document.getElementById("my-id").textContent = id;
+  const chatId = document.getElementById("chat-my-id");
+  if (chatId) chatId.textContent = id;
+
+  if (isHost) {
+    nicknames[id] = "Host";
+  }
+  updateModeUI();
+  updateParticipantDisplay();
+});
+
+peer.on('connection', c => {
+  if (!isHost) return;
+  connections.push(c);
+  c.on('data', msg => {
+    if (msg.startsWith("nick:")) {
+      const nick = msg.split("nick:")[1].trim();
+      nicknames[c.peer] = nick;
+      broadcastParticipantList();
+      updateParticipantDisplay();
+    } else {
+      log(msg);
+      connections.forEach(conn => {
+        if (conn.peer !== c.peer) conn.send(msg);
+      });
+    }
+  });
+  c.on('close', () => {
+    connections = connections.filter(x => x !== c);
+    delete nicknames[c.peer];
+    broadcastParticipantList();
+    updateParticipantDisplay();
+  });
+});
+
+function connectToHost() {
+  nickname = document.getElementById("nickname").value.trim();
+  const hostId = document.getElementById("peer-id-input").value.trim();
+  if (!nickname) return alert("Please enter your name.");
+  if (!hostId) return alert("Please enter a Host ID.");
+
+  conn = peer.connect(hostId);
+  conn.on('open', () => {
+    conn.send("nick:" + nickname);
+    switchScreen(true);
+    log(`✅ Connected to host ${hostId} (5)`, { countdownSecs: 5 });
+    conn.on('data', msg => {
+      if (msg.startsWith("list:")) {
+        const names = msg.split("list:")[1].split(",");
+        updateParticipantDisplay(names.map(name => name.trim()));
+      } else {
+        log(msg);
+      }
+    });
+  });
+}
+
+function broadcastParticipantList() {
+  const allNames = Object.values(nicknames);
+  connections.forEach(c => c.send("list:" + allNames.join(",")));
+}
+
+function updateParticipantDisplay(overwriteList = null) {
+  const list = overwriteList || Object.values(nicknames);
+  const count = list.length;
+  const ul = document.getElementById("people-list");
+  const badge = document.getElementById("participant-badge");
+
+  document.getElementById("participant-count").textContent = `Total: ${count}`;
+  ul.innerHTML = "";
+  list.forEach(name => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    ul.appendChild(li);
+  });
+
+  if (count > 0) {
+    badge.style.display = "inline-block";
+    badge.textContent = count;
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function validateAndGoToChat() {
+  nickname = document.getElementById("nickname").value.trim();
+  if (!nickname) return alert("Please enter your name.");
+  nicknames[peer.id] = nickname;
+  updateParticipantDisplay();
+  broadcastParticipantList();
+  switchScreen(true);
+}
+
+function sendMessage() {
+  const msgText = document.getElementById("message").value;
+  if (!msgText) return;
+  document.getElementById("message").value = '';
+  const msg = `${nickname}: ${msgText}`;
+  log("🔵 " + msg);
+  if (isHost) {
+    connections.forEach(c => c.send("🔶 " + msg));
+  } else {
+    conn.send("🔵 " + msg);
+  }
+}
+
+function log(msg, options = {}) {
+  const box = document.getElementById("chat-box");
+
+  const line = document.createElement("div");
+  line.textContent = msg;
+
+  if (options.countdownSecs) {
+    line.style.color = "#888";
+    line.style.fontStyle = "italic";
+  }
+
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+
+  if (options.countdownSecs) {
+    let seconds = options.countdownSecs;
+    const originalMsg = msg.split("(")[0].trim();
+    const interval = setInterval(() => {
+      seconds--;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        if (box.contains(line)) box.removeChild(line);
+      } else {
+        line.textContent = `${originalMsg} (${seconds})`;
+      }
+    }, 1000);
+  }
+}
+
+function switchScreen(toChat) {
+  document.getElementById("home-screen").classList.toggle("active", !toChat);
+  document.getElementById("chat-screen").classList.toggle("active", toChat);
+  document.getElementById("host-id-bar").style.display = (toChat && isHost) ? "block" : "none";
+}
+
+function exitRoom() {
+  if (conn) conn.close();
+  connections.forEach(c => c.close());
+  connections = [];
+  nicknames = isHost ? { [peer.id]: "Host" } : {};
+  updateParticipantDisplay();
+  switchScreen(false);
+}
+
+function copyID() {
+  const id = document.getElementById("my-id").textContent;
+  navigator.clipboard.writeText(id).then(() => alert("Copied to clipboard!"));
+}
+
+function shareID() {
+  const id = document.getElementById("my-id").textContent;
+  if (navigator.share) {
+    navigator.share({ title: "Join my P2P Chat", text: "Here is my chat ID:", url: id });
+  } else {
+    alert("Sharing not supported on this device.");
+  }
+}
+
+function showPeopleModal() {
+  document.getElementById("people-modal").style.display = "block";
+  document.getElementById("modal-bg").style.display = "block";
+}
+
+function hidePeopleModal() {
+  document.getElementById("people-modal").style.display = "none";
+  document.getElementById("modal-bg").style.display = "none";
+}
+
+function updateModeUI() {
+  const isJoiner = !isHost;
+  document.getElementById("host-id-section").style.display = isHost ? "block" : "none";
+  document.getElementById("joiner-id-section").style.display = isJoiner ? "block" : "none";
+  document.getElementById("go-to-chat").style.display = isHost ? "block" : "none";
+  document.getElementById("join-btn").style.display = isJoiner ? "block" : "none";
+  document.getElementById("mode-msg").innerHTML = isHost
+    ? "🔵 You are HOST. Share your ID."
+    : "🔷 You are JOINER. Enter host ID.";
+}
+
+function switchMode() {
+  isHost = !isHost;
+  location.hash = isHost ? "#host" : "";
+  updateModeUI();
+}
+
+	</script>
+
+</body>
+</html>
