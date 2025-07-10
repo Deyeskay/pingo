@@ -215,24 +215,28 @@
   <!-- PeerJS -->
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 	<script>
-	  // Updated P2P Chat App JavaScript
+	   // Updated P2P Chat App JavaScript with nickname persistence, host disconnect warning, and UI fixes
 let isHost = location.hash === "#host";
 const peer = new Peer({ host: '0.peerjs.com', port: 443, path: '/' });
 let conn;
 let connections = [];
 let nicknames = {};
-let nickname = "";
+let nickname = localStorage.getItem('nickname') || "";
+const storedRole = localStorage.getItem('role');
+if (storedRole) isHost = storedRole === 'host';
+let currentHostId = "";
 
 peer.on('open', id => {
   document.getElementById("my-id").textContent = id;
   const chatId = document.getElementById("chat-my-id");
   if (chatId) chatId.textContent = id;
 
-  if (isHost) {
-    nicknames[id] = "Host";
+  if (isHost && nickname) {
+    nicknames[id] = nickname;
   }
   updateModeUI();
   updateParticipantDisplay();
+  setupNicknameField();
 });
 
 peer.on('connection', c => {
@@ -260,15 +264,22 @@ peer.on('connection', c => {
 });
 
 function connectToHost() {
-  nickname = document.getElementById("nickname").value.trim();
+  nickname = nickname || document.getElementById("nickname").value.trim();
   const hostId = document.getElementById("peer-id-input").value.trim();
   if (!nickname) return alert("Please enter your name.");
   if (!hostId) return alert("Please enter a Host ID.");
+
+  localStorage.setItem('nickname', nickname);
+  localStorage.setItem('role', 'joiner');
+
+  const shouldClearChat = currentHostId !== hostId;
+  currentHostId = hostId;
 
   conn = peer.connect(hostId);
   conn.on('open', () => {
     conn.send("nick:" + nickname);
     switchScreen(true);
+    if (shouldClearChat) clearChat();
     log(`✅ Connected to host ${hostId} (5)`, { countdownSecs: 5 });
     conn.on('data', msg => {
       if (msg.startsWith("list:")) {
@@ -278,6 +289,11 @@ function connectToHost() {
         log(msg);
       }
     });
+  });
+  conn.on('close', () => {
+    if (!isHost) {
+      log("\u26A0\uFE0F Host disconnected", { color: "red" });
+    }
   });
 }
 
@@ -309,12 +325,17 @@ function updateParticipantDisplay(overwriteList = null) {
 }
 
 function validateAndGoToChat() {
-  nickname = document.getElementById("nickname").value.trim();
+  nickname = nickname || document.getElementById("nickname").value.trim();
   if (!nickname) return alert("Please enter your name.");
+
+  localStorage.setItem('nickname', nickname);
+  localStorage.setItem('role', 'host');
+
   nicknames[peer.id] = nickname;
   updateParticipantDisplay();
   broadcastParticipantList();
   switchScreen(true);
+  clearChat();
 }
 
 function sendMessage() {
@@ -322,23 +343,25 @@ function sendMessage() {
   if (!msgText) return;
   document.getElementById("message").value = '';
   const msg = `${nickname}: ${msgText}`;
-  log("🔵 " + msg);
+  log("\uD83D\uDD35 " + msg);
   if (isHost) {
-    connections.forEach(c => c.send("🔶 " + msg));
+    connections.forEach(c => c.send("\uD83D\uDD36 " + msg));
   } else {
-    conn.send("🔵 " + msg);
+    conn.send("\uD83D\uDD35 " + msg);
   }
 }
 
 function log(msg, options = {}) {
   const box = document.getElementById("chat-box");
-
   const line = document.createElement("div");
   line.textContent = msg;
 
   if (options.countdownSecs) {
     line.style.color = "#888";
     line.style.fontStyle = "italic";
+  }
+  if (options.color) {
+    line.style.color = options.color;
   }
 
   box.appendChild(line);
@@ -359,6 +382,10 @@ function log(msg, options = {}) {
   }
 }
 
+function clearChat() {
+  document.getElementById("chat-box").innerHTML = "";
+}
+
 function switchScreen(toChat) {
   document.getElementById("home-screen").classList.toggle("active", !toChat);
   document.getElementById("chat-screen").classList.toggle("active", toChat);
@@ -369,9 +396,10 @@ function exitRoom() {
   if (conn) conn.close();
   connections.forEach(c => c.close());
   connections = [];
-  nicknames = isHost ? { [peer.id]: "Host" } : {};
+  nicknames = isHost ? { [peer.id]: nickname } : {};
   updateParticipantDisplay();
   switchScreen(false);
+  setupNicknameField();
 }
 
 function copyID() {
@@ -411,8 +439,40 @@ function updateModeUI() {
 
 function switchMode() {
   isHost = !isHost;
+  localStorage.setItem('role', isHost ? 'host' : 'joiner');
   location.hash = isHost ? "#host" : "";
   updateModeUI();
+  setupNicknameField();
+}
+
+function setupNicknameField() {
+  const nameInput = document.getElementById("nickname");
+  if (!nameInput) return;
+
+  if (nickname) {
+    nameInput.style.display = "none";
+    let label = document.getElementById("nickname-label");
+    if (!label) {
+      label = document.createElement("div");
+      label.id = "nickname-label";
+      nameInput.parentElement.insertBefore(label, nameInput);
+    }
+    label.innerHTML = `Hello, <strong>${nickname}</strong> <span style="cursor:pointer;color:#6200ee;" onclick="editNickname()">✏️</span>`;
+  } else {
+    nameInput.style.display = "block";
+    const existing = document.getElementById("nickname-label");
+    if (existing) existing.remove();
+  }
+}
+
+function editNickname() {
+  const nameInput = document.getElementById("nickname");
+  localStorage.removeItem('nickname');
+  nickname = "";
+  const label = document.getElementById("nickname-label");
+  if (label) label.remove();
+  nameInput.style.display = "block";
+  nameInput.focus();
 }
 
 	</script>
