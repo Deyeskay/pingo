@@ -10,9 +10,13 @@
 
   <!-- Home Screen -->
   <div id="home-screen" class="screen active">
-    <h2>🧩 Pingo 
-      <button class="small-btn" onclick="switchMode()" title="Switch mode">🔁</button>
-    </h2>
+    <h2 style="gap: 10px;">
+  <img src="https://raw.githubusercontent.com/Deyeskay/pingo/5d287c7a4665fa3f4916862fce8771d12b4dc92f/pingo_icon.png" 
+       alt="Pingo Logo" 
+       style="border-radius: 50%; width: 30px; height: 30px;">
+  <span style="font-weight: bold; font-size: 1.2em;">Pingo</span>
+  <button class="small-btn" onclick="switchMode()" title="Switch mode" style="margin-left:auto;">🔁</button>
+</h2>
 
     <p id="mode-msg"><strong>Loading...</strong></p>
 
@@ -37,15 +41,26 @@
   <!-- Chat Screen -->
   <div id="chat-screen" class="screen">
     <div id="top-bar">
-      <h2>🧩 Pingo</h2>
-      <div class="toolbar-icons">
-        <div id="people-icon-container" style="position: relative; cursor: pointer;" onclick="showPeopleModal()">
-          <span style="font-size: 1.3em;">👥</span>
-          <span id="participant-badge" class="badge" style="display:none;">1</span>
-        </div>
-        <button id="exit-room" onclick="exitRoom()">Exit Room</button>
-      </div>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <!-- <button onclick="switchScreen(false)" class="small-btn">⬅️</button> -->
+    <img src="https://raw.githubusercontent.com/Deyeskay/pingo/5d287c7a4665fa3f4916862fce8771d12b4dc92f/pingo_icon.png" style="border-radius: 50%;width: 30px;">
+    <div style="font-weight: bold;text-transform: capitalize;" id="topbar-username">Username</div>
+  </div>
+  <div class="toolbar-icons">
+    <div id="people-icon-container" onclick="showPeopleModal()" style="position: relative; cursor: pointer;">
+	  <span style="font-size: 1.3em;">👥</span>
+	  <span id="participant-badge" class="badge" style="display: none;">1</span>
+	</div>
+    <div class="dropdown">
+      <span class="three-dots" onclick="toggleDropdown()">⋮</span> 
+	  <div id="dropdown-menu" class="dropdown-menu">
+		  <button onclick="copyID()">📋 Copy ID</button>
+		  <button onclick="shareID()">🔗 Share ID</button>
+		  <button onclick="exitRoom()">🚪 Exit Room</button>
+	  </div>
     </div>
+  </div>
+</div>
 
     <div id="host-id-bar" style="margin-bottom: 10px; display: none;">
       <strong>ID:</strong>

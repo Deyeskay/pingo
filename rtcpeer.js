@@ -254,9 +254,10 @@ function copyID() {
 
 function shareID() {
   const id = document.getElementById("my-id").textContent;
-  const shareURL = `https://deyeskay.github.io/pingo/index.html?join=${id}`;
+  const baseURL = window.location.origin + window.location.pathname;
+  const shareURL = `${baseURL}?join=${id}`;
   if (navigator.share) {
-    navigator.share({ title: "Join me on Pingo Chat", text: "Here is my chat ID:", url: shareURL});
+    navigator.share({ title: "Join me on Pingo Chat", text: "Here is my chat ID:", url: shareURL });
   } else {
     alert("Sharing not supported on this device.");
   }
@@ -320,3 +321,15 @@ function editNickname() {
   nameInput.style.display = "block";
   nameInput.focus();
 }
+/*3 dots onclick */
+function toggleDropdown() {
+  const menu = document.getElementById("dropdown-menu");
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+
+window.addEventListener('click', function (e) {
+  if (!e.target.matches('.three-dots')) {
+    const dropdowns = document.getElementsByClassName("dropdown-menu");
+    for (let d of dropdowns) d.style.display = "none";
+  }
+});
