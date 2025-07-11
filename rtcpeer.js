@@ -9,6 +9,19 @@ const storedRole = localStorage.getItem('role');
 if (storedRole) isHost = storedRole === 'host';
 let currentHostId = "";
 
+// ✅ Autofill join ID from ?join=... parameter
+const params = new URLSearchParams(window.location.search);
+const prefillJoinId = params.get("join");
+if (prefillJoinId) {
+  isHost = false; // force joiner mode
+  localStorage.setItem('role', 'joiner'); // persist joiner role
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("peer-id-input");
+    if (input) input.value = prefillJoinId;
+  });
+}
+
 peer.on('open', id => {
   document.getElementById("my-id").textContent = id;
   if (isHost && nickname) {
@@ -241,8 +254,9 @@ function copyID() {
 
 function shareID() {
   const id = document.getElementById("my-id").textContent;
+  const shareURL = `https://deyeskay.github.io/pingo/index.html?join=${id}`;
   if (navigator.share) {
-    navigator.share({ title: "Join my P2P Chat", text: "Here is my chat ID:", url: id });
+    navigator.share({ title: "Join me on Pingo Chat", text: "Here is my chat ID:", url: shareURL});
   } else {
     alert("Sharing not supported on this device.");
   }
