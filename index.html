@@ -13,7 +13,7 @@
     <h2 style="gap: 10px;">
   <img src="https://raw.githubusercontent.com/Deyeskay/pingo/5d287c7a4665fa3f4916862fce8771d12b4dc92f/pingo_icon.png" 
        alt="Pingo Logo" 
-       style="border-radius: 50%; width: 30px; height: 30px;">
+       style="border-radius: 50%; width: 70px; ">
   <span style="font-weight: bold; font-size: 1.2em;">Pingo</span>
   <button class="small-btn" onclick="switchMode()" title="Switch mode" style="margin-left:auto;">🔁</button>
 </h2>
@@ -21,7 +21,7 @@
     <p id="mode-msg"><strong>Loading...</strong></p>
 
     <div id="host-id-section" style="display: none;">
-      <p><strong>Your ID:</strong> 
+      <p><strong>🆔 </strong> 
         <span id="my-id">Loading...</span> 
         <span class="copy-icons" onclick="copyID()">📋</span> 
         <span class="copy-icons" onclick="shareID()">🔗</span>
@@ -34,8 +34,8 @@
 
     <input id="nickname" placeholder="Enter your name/nickname">
 
-    <button id="join-btn" onclick="connectToHost()">Join Room</button>
-    <button id="go-to-chat" onclick="validateAndGoToChat()" style="display: none;">Go to Chat Room</button>
+    <button id="join-btn" onclick="connectToHost()">Lets Pingo</button>
+    <button id="go-to-chat" onclick="validateAndGoToChat()" style="display: none;">Start Pingo</button>
   </div>
 
   <!-- Chat Screen -->
@@ -56,7 +56,7 @@
 	  <div id="dropdown-menu" class="dropdown-menu">
 		  <button onclick="copyID()">📋 Copy ID</button>
 		  <button onclick="shareID()">🔗 Share ID</button>
-		  <button onclick="exitRoom()">🚪 Exit Room</button>
+		  <button onclick="exitRoom()">🚪 Leave </button>
 	  </div>
     </div>
   </div>
@@ -69,8 +69,12 @@
     </div>
 
     <div id="chat-box"></div>
-    <input id="message" placeholder="Enter message">
-    <button onclick="sendMessage()">Send</button>
+    <div class="message-input-wrapper">
+	  <span class="msg-icon-left">➕</span>
+	  <input id="message" placeholder="Write anything..." />
+	  <button class="send-btn" onclick="sendMessage()">⬆️</button>
+	</div>
+
   </div>
 
   <!-- Participants Modal -->
@@ -81,7 +85,9 @@
     <ul id="people-list"></ul>
     <button onclick="hidePeopleModal()">Close</button>
   </div>
+  
 
+<div id="global-toast" class="global-toast"></div>
   <!-- PeerJS -->
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="rtcpeer.js"></script>

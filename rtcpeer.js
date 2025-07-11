@@ -94,7 +94,8 @@ function connectToHost() {
   conn = peer.connect(hostId);
   conn.on('open', () => {
     conn.send("nick:" + nickname);
-    switchScreen(true);
+	document.getElementById("topbar-username").textContent = nickname; // ✅ update topbar
+	switchScreen(true);
     if (shouldClearChat) clearChat();
     log(`✅ Connected to host ${hostId} (5)`, { countdownSecs: 5 });
 
@@ -159,7 +160,8 @@ function validateAndGoToChat() {
   localStorage.setItem('nickname', nickname);
   localStorage.setItem('role', 'host');
 
-  nicknames[peer.id] = nickname;
+	document.getElementById("topbar-username").textContent = nickname; // ✅ update topbar
+	nicknames[peer.id] = nickname;
   updateParticipantDisplay();
   broadcastParticipantList();
   switchScreen(true);
@@ -181,6 +183,15 @@ function sendMessage() {
 
 function log(msg, options = {}) {
   const box = document.getElementById("chat-box");
+  
+  if (options.toast) {
+	  const toast = document.createElement("div");
+	  toast.className = "system-msg-container";
+	  toast.innerHTML = `<div class="system-msg">${msg}</div>`;
+	  document.getElementById("chat-box").appendChild(toast);
+	  setTimeout(() => toast.remove(), 3000);
+	  return;
+  } 
 
   const outer = document.createElement("div");
   const bubble = document.createElement("div");
@@ -199,12 +210,27 @@ function log(msg, options = {}) {
   bubble.appendChild(time);
 
   // System messages
-  if (msg.includes("joined the room") || msg.includes("left the room") || msg.includes("Host disconnected")) {
-    bubble.className = "system-msg";
-    bubble.textContent = `${msg}`;
-    outer.className = "system-msg-container";
-    outer.appendChild(bubble);
-  } else {
+  if (msg.includes("joined the room") || msg.includes("left the room") || msg.includes("Host disconnected") || options.countdownSecs) {
+		bubble.className = "system-msg";
+		bubble.textContent = `${msg}`;
+		outer.className = "system-msg-container";
+		outer.appendChild(bubble);
+
+		// ✅ Countdown + remove
+		if (options.countdownSecs) {
+			let seconds = options.countdownSecs;
+			const interval = setInterval(() => {
+				seconds--;
+				if (seconds <= 0) {
+					outer.remove();
+					clearInterval(interval);
+				} else {
+					bubble.textContent = msg.replace(/\(\d+\)$/, `(${seconds})`);
+				}
+			}, 1000);
+		}
+	}
+	else {
     bubble.className = "chat-bubble";
 
     // Own vs Other alignment
@@ -233,7 +259,9 @@ function clearChat() {
 function switchScreen(toChat) {
   document.getElementById("home-screen").classList.toggle("active", !toChat);
   document.getElementById("chat-screen").classList.toggle("active", toChat);
-  document.getElementById("host-id-bar").style.display = (toChat && isHost) ? "block" : "none";
+  /*document.getElementById("host-id-bar").style.display = (toChat && isHost) ? "block" : "none";
+  // Removed host-id-bar since we now show copy/share only via dropdown*/
+  document.getElementById("host-id-bar").style.display = "none";
 }
 
 function exitRoom() {
@@ -248,20 +276,34 @@ function exitRoom() {
 }
 
 function copyID() {
-  const id = document.getElementById("my-id").textContent;
-  navigator.clipboard.writeText(id).then(() => alert("Copied to clipboard!"));
+  const id = isHost ? peer.id : currentHostId;
+  if (!id) return;
+
+  navigator.clipboard.writeText(id).then(() => {
+    const toast = document.getElementById("global-toast");
+    toast.textContent = "📋 ID copied";
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+  });
 }
 
+
 function shareID() {
-  const id = document.getElementById("my-id").textContent;
+  const id = isHost ? peer.id : currentHostId;
+  if (!id) return alert("Host ID not available yet.");
   const baseURL = window.location.origin + window.location.pathname;
   const shareURL = `${baseURL}?join=${id}`;
   if (navigator.share) {
-    navigator.share({ title: "Join me on Pingo Chat", text: "Here is my chat ID:", url: shareURL });
+    navigator.share({
+      title: "Join me on Pingo Chat",
+      text: "Here is my chat ID:",
+      url: shareURL
+    });
   } else {
     alert("Sharing not supported on this device.");
   }
 }
+
 
 function showPeopleModal() {
   document.getElementById("people-modal").style.display = "block";
@@ -320,6 +362,8 @@ function editNickname() {
   if (label) label.remove();
   nameInput.style.display = "block";
   nameInput.focus();
+  document.getElementById("topbar-username").textContent = "Username"; // ✅ reset topbar
+
 }
 /*3 dots onclick */
 function toggleDropdown() {

@@ -44,7 +44,7 @@ input {
 }
 
 button {
-  background: #6200ee;
+  background: #2e87d9; /*#e0b81c*/
   color: white;
   cursor: pointer;
 }
@@ -55,6 +55,10 @@ button {
   border-radius: 50%;
   padding: 0;
   font-size: 18px;
+}
+
+#mode-msg,#host-id-section {
+	font-size:12px;
 }
 
 #chat-box {
@@ -72,6 +76,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .copy-icons {
@@ -242,4 +247,63 @@ button {
 
 .dropdown-menu button:hover {
   background-color: #f2f2f2;
+}
+/*toast*/
+.global-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #323232;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 999;
+}
+.global-toast.show {
+  opacity: 1;
+}
+/*message-input-Area */
+.message-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  padding: 6px 10px;
+  margin-top: 10px;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.message-input-wrapper input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1em;
+  background: transparent;
+  padding: 8px;
+}
+
+.send-btn {
+  background: #56a3f4;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-icon-left {
+  font-size: 14px;
+  color: gray;
 }
