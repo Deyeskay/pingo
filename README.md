@@ -1,3 +1,5 @@
+<a href="https://deyeskay.github.io/pingo/">Run Pingo</a>
+
 🛡️ 1. Truly Serverless & Private — Zero Data Stored Anywhere
 
 “No server. No tracking. Just pure peer-to-peer chat. What you say disappears with you.”
