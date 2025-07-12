@@ -2,24 +2,42 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Roboto', sans-serif;
   background: #aaa;
-  margin: 0;
-  padding: 1em;
   max-width: 600px;
   margin: auto;
+  height: 100%;
 }
 
-.screen {
-  display: none;
+@media (max-width: 500px) {
+  body {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+.screen { 
   background: #f4f4f4;
   padding: 20px;
   border-radius: 12px;
+  height: 100vh; /* Use full viewport height */ 
+  flex-direction: column;
 }
 
-.active {
-  display: block !important;
+.screen:not(.active) {
+  display: none;
+}
+
+.screen.active {
+  display: flex;
 }
 
 h2 {
@@ -62,14 +80,15 @@ button {
 }
 
 #chat-box {
+  flex: 1;
   background: white;
   padding: 10px;
   border-radius: 8px;
-  height: 300px;
   overflow-y: auto;
   font-size: 0.95em;
   white-space: pre-wrap;
   border: 1px solid #ddd;
+  margin-bottom: 10px;
 }
 
 #top-bar {
@@ -138,6 +157,10 @@ button {
 #people-list {
   margin-top: 10px;
   padding-left: 20px;
+}
+
+#chat-box > div:last-child {
+  margin-bottom: 10px;
 }
 
 @media (max-width: 500px) {
@@ -275,9 +298,9 @@ button {
   border: 1px solid #ccc;
   border-radius: 30px;
   padding: 6px 10px;
-  margin-top: 10px;
   gap: 10px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin: 0;
 }
 
 .message-input-wrapper input {
