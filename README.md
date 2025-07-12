@@ -11,7 +11,8 @@ Perfect for people seeking digital minimalism, anonymity, or ephemeral communica
 Good for: whistleblowers, journalists, travelers, friends in restricted regions, or just casual users avoiding digital fatigue.
 Run it as a PWA (progressive web app) that opens from a single link.
 
-3. Open-Source for the Privacy-Conscious
+🧠 3. Open-Source for the Privacy-Conscious
+
 “Auditable, forkable, forever yours.”
 People, orgs, or activist communities that don’t trust proprietary systems could fork and deploy their own version.
 You stay lean but profitable via custom builds, branded deployment, or support services.
